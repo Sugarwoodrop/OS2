@@ -1,0 +1,49 @@
+#ifndef __FITOS_QUEUE_H__
+#define __FITOS_QUEUE_H__
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <semaphore.h> 
+
+#define SUCCESS 0
+#define ERROR -1
+#define QUEUE_ERROR 0
+#define QUEUE_SUCCESS 1
+#define SEMAPHORE_PRIVATE 0
+
+typedef struct _QueueNode {
+	int val;
+	struct _QueueNode *next;
+} qnode_t;
+
+typedef struct _Queue {
+	qnode_t *first;
+	qnode_t *last;
+
+	pthread_t qmonitor_tid;
+
+	sem_t empty_slots;    
+    sem_t filled_slots;   
+    sem_t queue_lock;          
+
+	int count;
+	int max_count;
+
+	long add_attempts;
+	long get_attempts;
+	long add_count;
+	long get_count;
+} queue_t;
+
+queue_t* queue_init(int max_count);
+void queue_destroy(queue_t *q);
+int queue_add(queue_t *q, int val);
+int queue_get(queue_t *q, int *val);
+void queue_print_stats(queue_t *q);
+
+#endif		// __FITOS_QUEUE_H__
