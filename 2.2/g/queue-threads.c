@@ -121,11 +121,11 @@ int main() {
 	result = cancel_and_join_thread(reader_tid, "reader");
 	if (result != SUCCESS) {
 		return ERROR;
-	}
+	}	
 	result = cancel_and_join_thread(writer_tid, "writer");
 	if (result != SUCCESS) {
 		return ERROR;
-	}
+	}	
 	queue_destroy(q);
 	printf("main: queue was destroyed\n");
 	return SUCCESS;
