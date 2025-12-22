@@ -126,10 +126,11 @@ int queue_add(queue_t *q, int val) {
 
 	q->add_attempts++;	
 	while (q->count == q->max_count) {
-		int err = pthread_cond_wait(&q->cond, &q->mutex);
-        if (err != 0) {
-            fprintf(stderr, "pthread_cond_wait failed: %s\n", strerror(err));
-        }
+		err = pthread_cond_wait(&q->cond, &q->mutex);
+		if (err != SUCCESS){
+			printf("queue_get: pthread_cond_wait() failed: %s\n", strerror(err)); 
+			return QUEUE_ERROR;
+		}
 	}			
 
 	new->val = val;
@@ -143,11 +144,11 @@ int queue_add(queue_t *q, int val) {
 	q->count++;
 	q->add_count++;
 
-	int err = pthread_cond_broadcast(&q->cond);
-    if (err != 0) {
-        fprintf(stderr, "pthread_cond_broadcast failed: %s\n", strerror(err));
-    }
-
+	err = pthread_cond_broadcast(&q->cond);
+	if (err != SUCCESS) {
+		printf("queue_add: pthread_cond_wait() failed: %s\n", strerror(err)); 
+		return QUEUE_ERROR;
+	}
 	err = pthread_setcancelstate(old_cancel_state, NULL);
 	if (err != SUCCESS) {
 		printf("queue_add: pthread_setcancelstate() failed: %s\n", strerror(err));
@@ -179,10 +180,11 @@ int queue_get(queue_t *q, int *val) {
 	
 	q->get_attempts++;
 	while (q->count == 0) {
-		int err = pthread_cond_wait(&q->cond, &q->mutex);
-        if (err != 0) {
-            fprintf(stderr, "pthread_cond_wait failed: %s\n", strerror(err));
-        }
+		err = pthread_cond_wait(&q->cond, &q->mutex);
+		if (err != SUCCESS){ 
+			printf("queue_get: pthread_cond_wait() failed: %s\n", strerror(err)); 
+			return QUEUE_ERROR;
+		}
 	}
 
 	qnode_t *tmp = q->first;
@@ -193,10 +195,11 @@ int queue_get(queue_t *q, int *val) {
 	q->count--;
 	q->get_count++;
 
-    int err = pthread_cond_broadcast(&q->cond);
-    if (err != 0) {
-        fprintf(stderr, "pthread_cond_broadcast failed: %s\n", strerror(err));
-    }
+	err = pthread_cond_broadcast(&q->cond);
+	if (err != SUCCESS) {
+		printf("queue_get: pthread_cond_wait() failed: %s\n", strerror(err)); 
+		return QUEUE_ERROR;
+	}
 	err = pthread_setcancelstate(old_cancel_state, NULL);
 	if (err != SUCCESS) {
 		printf("queue_get: pthread_setcancelstate() failed: %s\n", strerror(err));
@@ -211,6 +214,6 @@ int queue_get(queue_t *q, int *val) {
 void queue_print_stats(queue_t *q) {
 	printf("queue stats: current size %d; attempts: (%ld %ld %ld); counts (%ld %ld %ld)\n",
 		q->count,
-		q->add_attempts, q->get_attempts, q->add_attempts - q->get_attempts,
+		q->add_attempts, q->get_attempts, q->add_attempts - q->get_attempts,  //попытки
 		q->add_count, q->get_count, q->add_count -q->get_count);
 }
