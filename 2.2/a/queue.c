@@ -21,7 +21,7 @@ queue_t* queue_init(int max_count) {
 	queue_t *q = malloc(sizeof(queue_t));
 	if (q == NULL) {
 		printf("Cannot allocate memory for a queue\n");
-		abort();
+		return NULL;
 	}
 
 	q->first = NULL;
@@ -154,6 +154,6 @@ int queue_get(queue_t *q, int *val) {
 void queue_print_stats(queue_t *q) {
 	printf("queue stats: current size %d; attempts: (%ld %ld %ld); counts (%ld %ld %ld)\n",
 		q->count,
-		q->add_attempts, q->get_attempts, q->add_attempts - q->get_attempts, 
+		q->add_attempts, q->get_attempts, q->add_attempts - q->get_attempts,  //попытки
 		q->add_count, q->get_count, q->add_count -q->get_count);
 }
