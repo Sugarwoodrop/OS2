@@ -26,8 +26,6 @@ typedef struct {
     char dst_path[PATH_MAX];
 } task_t;
 
-pthread_mutex_t dir_mutex;
-
 int build_path(char* path, size_t size, const char* dir, const char* name);
 int open_with_retry(const char* path, int flags, mode_t mode);
 DIR* opendir_with_retry(const char* path);
