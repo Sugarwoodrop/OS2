@@ -54,27 +54,11 @@ int create_directory_safe(const char* src_path, const char* dst_path) {
         return ERROR;
     }
 
-    err = pthread_mutex_lock(&dir_mutex);
-    if (err != SUCCESS) {
-        printf("create_directory_safe: pthread_mutex_lock() failed: %s\n", strerror(err));
-        return ERROR;
-    }
-
     err = mkdir(dst_path, src_stat.st_mode);
     if (err != SUCCESS && errno != EEXIST) {
         printf("create_directory_safe: mkdir() failed for %s: %s\n", src_path, strerror(errno));
-        err = pthread_mutex_unlock(&dir_mutex);
-        if (err != SUCCESS) {
-            printf("create_directory_safe: pthread_mutex_unlock() failed: %s\n", strerror(err));
-        }
         return ERROR;
-    } 
-
-    err = pthread_mutex_unlock(&dir_mutex);
-    if (err != SUCCESS) {
-        printf("create_directory_safe: pthread_mutex_unlock() failed: %s\n", strerror(err));
-        return ERROR;
-    }    
+    }
     return SUCCESS;
 }
 
@@ -288,19 +272,9 @@ int main(int argc, char* argv[]) {
         return ERROR;
     }
 
-    err = pthread_mutex_init(&dir_mutex, NULL);
-	if (err != SUCCESS) {
-		printf("main: pthread_mutex_init() failed: %s\n", strerror(err));
-		return ERROR;
-	}
-
     task_t* task = malloc(sizeof(task_t));
     if (task == NULL) {
         printf("main: memory allocation failed\n");
-        err = pthread_mutex_destroy(&dir_mutex);
-        if (err != SUCCESS) {
-            printf("main: pthread_mutex_destroy() failed: %s\n", strerror(err));
-        }
         return ERROR;
     }
     strcpy(task->src_path, argv[1]);
@@ -310,26 +284,12 @@ int main(int argc, char* argv[]) {
 	if (err != SUCCESS) {
 		printf("main: pthread_create() failed: %s\n", strerror(err));
         free(task);
-		err = pthread_mutex_destroy(&dir_mutex);
-		if (err != SUCCESS) {
-            printf("main: pthread_mutex_destroy() failed: %s\n", strerror(err));
-        }
 		return ERROR;
 	}
-    err = pthread_join(main_thread, NULL);
+    err = pthread_detach(main_thread);
 	if (err != SUCCESS) {
-		printf("main: pthread_join() failed: %s\n", strerror(err));
-        err = pthread_mutex_destroy(&dir_mutex);
-		if (err != SUCCESS) {
-            printf("main: pthread_mutex_destroy() failed: %s\n", strerror(err));
-        }
+		printf("main: pthread_detach() failed: %s\n", strerror(err));
 		return ERROR;
 	}
-    sleep(2);
-    err = pthread_mutex_destroy(&dir_mutex);
-	if (err != SUCCESS) {
-		printf("main: pthread_mutex_destroy() failed: %s\n", strerror(err));
-	}
-    printf("main: all tasks were completed\n");
-    return SUCCESS;
+    pthread_exit(NULL);
 }
